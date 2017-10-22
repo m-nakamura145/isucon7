@@ -397,15 +397,13 @@ class App < Sinatra::Base
   end
 
   def get_channel_list_info(focus_channel_id = nil)
-    channels = db.query('SELECT * FROM channel ORDER BY id').to_a
-    description = ''
-    channels.each do |channel|
-      if channel['id'] == focus_channel_id
-        description = channel['description']
-        break
-      end
+    statement = db.prepare('SELECT * FROM channel WHERE id = ?')
+    channel = statement.execute(focus_channel_id).first
+    if channel
+      [[channel], channel['description']]
+    else
+      [[], '']
     end
-    [channels, description]
   end
 
   def ext2mime(ext)
