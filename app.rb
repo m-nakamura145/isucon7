@@ -128,7 +128,7 @@ class App < Sinatra::Base
     response = []
     user_ids = sprintf "(%s)", rows.map {|r| r['user_id'] }.join(',')
     users =
-      db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id IN ?').execute(user_ids)
+      db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id IN ?').execute(user_ids).to_a
 
     rows.each do |row|
       r = {}
