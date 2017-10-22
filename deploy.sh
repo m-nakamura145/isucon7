@@ -18,8 +18,10 @@ for HOST in ${HOSTS[@]}; do
        sudo systemctl stop isubata.python.service;
        sudo systemctl restart isubata.ruby.service;
        sudo systemctl restart nginx;
+       sudo systemctl restart redis;
+       redis-cli flushall;  
 '
-#    $NOTIFIER "$USERNAME -> $HOST: deploy finish "
+   $NOTIFIER "$USERNAME -> $HOST: deploy finish "
 done
 
 ssh isucon@$DB_SERVER sudo systemctl restart mysql
