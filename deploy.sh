@@ -19,9 +19,15 @@ for HOST in ${HOSTS[@]}; do
        sudo systemctl restart isubata.ruby.service;
        sudo systemctl restart nginx;
        sudo systemctl restart redis;
-       redis-cli flushall;  
+    #    redis-cli flushall;
 '
    $NOTIFIER "$USERNAME -> $HOST: deploy finish "
 done
 
-ssh isucon@$DB_SERVER sudo systemctl restart mysql
+$NOTIFIER "$USERNAME -> $DB_SERVER: db init start "
+ssh -A isucon@$DB_SERVER '
+    cd /home/isucon/isubata/webapp/ruby && git pull origin master;
+    /home/isucon/isubata/webapp/ruby/db/init.sh;
+    sudo systemctl restart mysql
+'
+$NOTIFIER "$USERNAME -> $DB_SERVER: db init finish"
