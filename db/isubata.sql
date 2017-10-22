@@ -40,3 +40,4 @@ CREATE TABLE haveread (
 ) Engine=InnoDB DEFAULT CHARSET=utf8mb4;
 
 ALTER TABLE message ADD INDEX channel_id_idx(channel_id);
+ALTER TABLE image ADD INDEX name_idx(name);
