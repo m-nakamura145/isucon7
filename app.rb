@@ -1,7 +1,6 @@
 require 'digest/sha1'
 require 'mysql2'
 require 'sinatra/base'
-require 'date'
 
 class App < Sinatra::Base
   configure do
@@ -31,10 +30,6 @@ class App < Sinatra::Base
       end
 
       @_user
-    end
-
-    def sql_now
-      @_now ||= (DateTime.now).strftime("%Y-%m-%d %H:%M:%S")
     end
   end
 
@@ -141,10 +136,10 @@ class App < Sinatra::Base
     max_message_id = rows.empty? ? 0 : rows.map { |row| row['id'] }.max
     statement = db.prepare([
       'INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at) ',
-      'VALUES (?, ?, ?, ?, ?)',
-      'ON DUPLICATE KEY UPDATE message_id = ?, updated_at = ?',
+      'VALUES (?, ?, ?, NOW(), NOW()) ',
+      'ON DUPLICATE KEY UPDATE message_id = ?, updated_at = NOW()',
     ].join)
-    statement.execute(user_id, channel_id, max_message_id, sql_now, max_message_id, sql_now, sql_now)
+    statement.execute(user_id, channel_id, max_message_id, max_message_id)
 
     content_type :json
     response.to_json
@@ -266,8 +261,8 @@ class App < Sinatra::Base
     if name.nil? || description.nil?
       return 400
     end
-    statement = db.prepare('INSERT INTO channel (name, description, updated_at, created_at) VALUES (?, ?, ?, ?)')
-    statement.execute(name, description, sql_now, sql_now)
+    statement = db.prepare('INSERT INTO channel (name, description, updated_at, created_at) VALUES (?, ?, NOW(), NOW())')
+    statement.execute(name, description)
     channel_id = db.last_id
     statement.close
     redirect "/channel/#{channel_id}", 303
@@ -364,8 +359,8 @@ class App < Sinatra::Base
   end
 
   def db_add_message(channel_id, user_id, content)
-    statement = db.prepare('INSERT INTO message (channel_id, user_id, content, created_at) VALUES (?, ?, ?, ?)')
-    messages = statement.execute(channel_id, user_id, content, sql_now)
+    statement = db.prepare('INSERT INTO message (channel_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())')
+    messages = statement.execute(channel_id, user_id, content)
     statement.close
     messages
   end
@@ -377,8 +372,8 @@ class App < Sinatra::Base
   def register(user, password)
     salt = random_string(20)
     pass_digest = Digest::SHA1.hexdigest(salt + password)
-    statement = db.prepare('INSERT INTO user (name, salt, password, display_name, avatar_icon, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-    statement.execute(user, salt, pass_digest, user, 'default.png', sql_now)
+    statement = db.prepare('INSERT INTO user (name, salt, password, display_name, avatar_icon, created_at) VALUES (?, ?, ?, ?, ?, NOW())')
+    statement.execute(user, salt, pass_digest, user, 'default.png')
     row = db.query('SELECT LAST_INSERT_ID() AS last_insert_id').first
     statement.close
     row['last_insert_id']
