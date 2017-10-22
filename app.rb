@@ -144,7 +144,7 @@ class App < Sinatra::Base
       'VALUES (?, ?, ?, ?, ?)',
       'ON DUPLICATE KEY UPDATE message_id = ?, updated_at = ?',
     ].join)
-    statement.execute(user_id, channel_id, max_message_id, sql_now, max_message_id, sql_now, sql_now)
+    statement.execute(user_id, channel_id, max_message_id, sql_now, sql_now, max_message_id, sql_now)
 
     content_type :json
     response.to_json
