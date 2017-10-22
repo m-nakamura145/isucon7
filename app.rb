@@ -45,6 +45,7 @@ class App < Sinatra::Base
     db.query("DELETE FROM channel WHERE id > 10")
     db.query("DELETE FROM message WHERE id > 10000")
     db.query("DELETE FROM haveread")
+    `cp -r images/* #{File.expand_path('../../public/icons', __FILE__})`
     204
   end
 
