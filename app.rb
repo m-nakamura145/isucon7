@@ -126,11 +126,15 @@ class App < Sinatra::Base
     statement = db.prepare('SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100')
     rows = statement.execute(last_message_id, channel_id).to_a
     response = []
+    user_ids = sprintf "(%s)", rows.map {|r| r['user_id'] }.join(',')
+    users =
+      db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id IN ?').execute(user_ids)
+
     rows.each do |row|
       r = {}
       r['id'] = row['id']
-      statement = db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id = ?')
-      r['user'] = statement.execute(row['user_id']).first
+      _user = users.find { |u| u['user_id'] == row['id'] }
+      r['user'] = _user
       r['date'] = row['created_at'].strftime("%Y/%m/%d %H:%M:%S")
       r['content'] = row['content']
       response << r
@@ -246,7 +250,7 @@ class App < Sinatra::Base
     @self_profile = user['id'] == @user['id']
     erb :profile
   end
-  
+
   get '/add_channel' do
     if user.nil?
       return redirect '/login', 303
