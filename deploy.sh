@@ -15,6 +15,7 @@ for HOST in ${HOSTS[@]}; do
     $NOTIFIER "$USERNAME -> $HOST: deploy start "
    ssh -A "isucon@${HOST}" '
        cd /home/isucon/isubata/webapp/ruby && git pull origin master ;\
+       /home/isucon/local/ruby/bin/bundle install --path vendor/bundle;
        sudo systemctl stop isubata.python.service;
        sudo systemctl restart isubata.ruby.service;
        sudo systemctl restart nginx;
