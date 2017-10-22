@@ -2,6 +2,7 @@ require 'digest/sha1'
 require 'mysql2'
 require 'sinatra/base'
 require 'date'
+require 'fileutils'
 
 class App < Sinatra::Base
   configure do
@@ -307,13 +308,14 @@ class App < Sinatra::Base
         digest = Digest::SHA1.hexdigest(data)
 
         avatar_name = digest + ext
-        avatar_data = data
+        FileUtils.mkdir_p(File.expand_path("../../public/icons", __FILE__))
+        FileUtils.copy(file[:tempfile].path, File.expand_path("../../public/icons/#{avatar_name}", __FILE__))
       end
     end
 
-    if !avatar_name.nil? && !avatar_data.nil?
-      statement = db.prepare('INSERT INTO image (name, data) VALUES (?, ?)')
-      statement.execute(avatar_name, avatar_data)
+    if !avatar_name.nil? && !data.nil?
+      statement = db.prepare('INSERT INTO image (name, data) VALUES (?, "dummy")')
+      statement.execute(avatar_name)
       statement.close
       statement = db.prepare('UPDATE user SET avatar_icon = ? WHERE id = ?')
       statement.execute(avatar_name, user['id'])
@@ -329,9 +331,10 @@ class App < Sinatra::Base
     redirect '/', 303
   end
 
+=begin
   get '/icons/:file_name' do
     file_name = params[:file_name]
-    statement = db.prepare('SELECT * FROM image WHERE name = ?')
+    statement = db.prepare('SELECT id, name FROM image WHERE name = ?')
     row = statement.execute(file_name).first
     statement.close
     ext = file_name.include?('.') ? File.extname(file_name) : ''
@@ -342,6 +345,7 @@ class App < Sinatra::Base
     end
     404
   end
+=end
 
   private
 
