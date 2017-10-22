@@ -314,7 +314,7 @@ class App < Sinatra::Base
     end
 
     if !avatar_name.nil? && !data.nil?
-      statement = db.prepare('INSERT INTO image (name, "dummy") VALUES (?)')
+      statement = db.prepare('INSERT INTO image (name, data) VALUES (?, "dummy")')
       statement.execute(avatar_name)
       statement.close
       statement = db.prepare('UPDATE user SET avatar_icon = ? WHERE id = ?')
