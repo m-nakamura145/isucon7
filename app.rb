@@ -128,7 +128,11 @@ class App < Sinatra::Base
     statement = db.prepare('SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100')
     rows = statement.execute(last_message_id, channel_id).to_a
     response = []
+
     user_ids = rows.map {|r| r['user_id'] }
+    content_type :json
+    return response.to_json if rows.empty?
+
     placeholders = ("?"*(user_ids.size)).split("").join(",")
     users =
       db.prepare('SELECT id, name, display_name, avatar_icon FROM user WHERE id IN ( ' + placeholders + ')' ).execute(*user_ids).to_a
@@ -152,7 +156,6 @@ class App < Sinatra::Base
     ].join)
     statement.execute(user_id, channel_id, max_message_id, sql_now, sql_now, max_message_id, sql_now)
 
-    content_type :json
     response.to_json
   end
 
