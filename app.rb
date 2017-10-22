@@ -126,20 +126,20 @@ class App < Sinatra::Base
     statement = db.prepare('SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100')
     rows = statement.execute(last_message_id, channel_id).to_a
     response = []
-    user_ids = sprintf "(%s)", rows.map {|r| r['user_id'] }.join(',')
+    user_ids = rows.map {|r| r['user_id'] }
+    placeholders = ("?"*(user_ids.size)).split("").join(",")
     users =
-      db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id IN ?').execute(user_ids).to_a
-
+      db.prepare('SELECT id, name, display_name, avatar_icon FROM user WHERE id IN ( ' + placeholders + ')' ).execute(*user_ids).to_a
     rows.each do |row|
       r = {}
       r['id'] = row['id']
-      _user = users.find { |u| u['user_id'] == row['id'] }
+      _user = users.find { |u| u['id'] == row['user_id'] }
       r['user'] = _user
       r['date'] = row['created_at'].strftime("%Y/%m/%d %H:%M:%S")
       r['content'] = row['content']
       response << r
-      statement.close
     end
+    statement.close
     response.reverse!
 
     max_message_id = rows.empty? ? 0 : rows.map { |row| row['id'] }.max
