@@ -331,7 +331,6 @@ class App < Sinatra::Base
     redirect '/', 303
   end
 
-=begin
   get '/icons/:file_name' do
     file_name = params[:file_name]
     statement = db.prepare('SELECT id, name FROM image WHERE name = ?')
@@ -341,11 +340,10 @@ class App < Sinatra::Base
     mime = ext2mime(ext)
     if !row.nil? && !mime.empty?
       content_type mime
-      return row['data']
+      return File.read(File.expand_path("../../public/icons/#{avatar_name}", __FILE__))
     end
     404
   end
-=end
 
   private
 
